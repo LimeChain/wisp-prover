@@ -1,0 +1,8 @@
+# Server configuration
+server:
+  host: "localhost"
+  port: 8002
+prover:
+  circuitsBasePath: "circuits"
+log:
+  level: "debug"
