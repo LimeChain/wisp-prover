@@ -4,16 +4,58 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/LimeChain/crc-prover/pkg/app/configs"
+	"github.com/iden3/go-rapidsnark/prover"
 	"os"
+	"os/exec"
 	"path"
+	"time"
 
 	"github.com/LimeChain/crc-prover/pkg/log"
-	"github.com/iden3/go-rapidsnark/prover"
 	"github.com/iden3/go-rapidsnark/types"
 	"github.com/iden3/go-rapidsnark/verifier"
-	"github.com/iden3/go-rapidsnark/witness"
 	"github.com/pkg/errors"
 )
+
+const (
+	proofDataFormat   string = "2006-01-02-15-04-05.000"
+	inputJsonFileName string = "input.json"
+	witnessFileName   string = "witness.wtns"
+	zkeyFileName      string = "final.zkey"
+	vkeyFileName      string = "vkey.json"
+)
+
+// Proof is a struct that is able to compute a witness and proof for a given circuit
+type Proof struct {
+	config            configs.ProverConfig
+	circuitBinaryPath string // Path to the circuit binary to be used for witness generation
+	zkeyPath          string // Path to the zkey to be used for proof generation
+	vkeyPath          string // Path to the verification key to be used for verifying the proof
+	dataPath          string // Path to the folder where input.json will be saved, witness and proof will be generated
+}
+
+func NewMultiplierProof(config configs.ProverConfig) *Proof {
+	return newProof(config, "multiplier", "multiplier")
+}
+
+func NewSszToPoseidonCommitmentProof(config configs.ProverConfig) *Proof {
+	return newProof(config, "ssz2Poseidon", "ssz2Poseidon")
+}
+
+func NewBlsHeaderVerificationProof(config configs.ProverConfig) *Proof {
+	return newProof(config, "blsHeaderVerification", "blsHeaderVerification")
+}
+
+// newProof assumes that the `binary`, `zkey` and `vkey` are placed in the `./{baseCircuitPaths}/{circuit}/` directory
+func newProof(config configs.ProverConfig, circuitName, binaryName string) *Proof {
+	return &Proof{
+		config:            config,
+		circuitBinaryPath: config.CircuitsBasePath + "/" + circuitName + "/" + binaryName,
+		zkeyPath:          config.CircuitsBasePath + "/" + circuitName + "/" + zkeyFileName,
+		vkeyPath:          config.CircuitsBasePath + "/" + circuitName + "/" + vkeyFileName,
+		dataPath:          config.ProofsBasePath + "/" + circuitName + "/" + time.Now().Format(proofDataFormat),
+	}
+}
 
 // ZKInputs are inputs for proof generation
 type ZKInputs map[string]interface{}
@@ -32,52 +74,57 @@ type FullProof struct {
 	PubSignals []string `json:"pub_signals"`
 }
 
-// GenerateZkProof executes snarkjs groth16prove function and returns proof only if it's valid
-func GenerateZkProof(ctx context.Context, circuitPath string, inputs ZKInputs) (*types.ZKProof, error) {
-
-	if path.Clean(circuitPath) != circuitPath {
-		return nil, fmt.Errorf("illegal circuitPath")
+// GenerateProof executes snarkjs groth16prove function and returns proof only if it's valid
+func (p *Proof) GenerateProof(ctx context.Context, inputs ZKInputs) (*types.ZKProof, error) {
+	if inputs == nil {
+		return nil, fmt.Errorf("no inputs provided")
 	}
-
-	wasmBytes, err := os.ReadFile(circuitPath + "/circuit.wasm")
+	// Create proof data directory
+	err := os.MkdirAll(p.dataPath, 0775)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to read wasm file")
+		return nil, errors.Wrap(err, "failed to create proofs folder on file system")
 	}
 
-	calc, err := witness.NewCircom2WitnessCalculator(wasmBytes, true)
+	// Create input.json proofs folder
+	inputJsonPath := p.dataPath + "/" + inputJsonFileName
+	inputJson, err := os.Create(inputJsonPath)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to instantiate wasm witness calc")
+		return nil, errors.Wrap(err, "failed to create input.json on file system")
 	}
-
-	jsonInputs, err := json.Marshal(inputs)
+	defer inputJson.Close()
+	encoder := json.NewEncoder(inputJson)
+	err = encoder.Encode(inputs)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to serialize inputs")
+		return nil, errors.Wrap(err, "failed to populate input.json file with input")
 	}
 
-	parsedInputs, err := witness.ParseInputs(jsonInputs)
+	// Generate witness
+	witnessPath := p.dataPath + "/" + witnessFileName
+	cmd := exec.Command(p.circuitBinaryPath, inputJsonPath, witnessPath)
+	_, err = cmd.CombinedOutput()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse inputs")
+		return nil, errors.Wrap(err, "failed to generate witness")
 	}
-
-	wtns, err := calc.CalculateWTNSBin(parsedInputs, true)
+	witness, err := os.ReadFile(witnessPath)
 	if err != nil {
-		log.WithContext(ctx).Errorw("failed to calculate witness", "error", err)
-		return nil, errors.Wrap(err, "failed to calculate witness")
+		return nil, errors.Wrap(err, "failed to read newly generated witness file")
 	}
-	log.WithContext(ctx).Debugw("-- witness calculate completed --")
+	log.WithContext(ctx).Debugw("Generated witness")
 
-	zkeyBytes, err := os.ReadFile(circuitPath + "/circuit_final.zkey")
+	// Generate Proof
+	zkeyBytes, err := os.ReadFile(p.zkeyPath)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read zkey file")
 	}
-
-	proof, err := prover.Groth16Prover(zkeyBytes, wtns)
+	proof, err := prover.Groth16Prover(zkeyBytes, witness)
 	if err != nil {
 		log.WithContext(ctx).Errorw("failed to generate proof", "proof", proof, "error", err)
 		return nil, errors.Wrap(err, "failed to generate proof")
 	}
+	log.WithContext(ctx).Debugw("Generated proof")
 
-	vkeyBytes, err := os.ReadFile(circuitPath + "/verification_key.json")
+	// Verify generated Proof
+	vkeyBytes, err := os.ReadFile(p.vkeyPath)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read verification_key file")
 	}
@@ -87,6 +134,7 @@ func GenerateZkProof(ctx context.Context, circuitPath string, inputs ZKInputs) (
 		log.WithContext(ctx).Errorw("failed to verify proof", "proof", proof, "error", err)
 		return nil, errors.Wrap(err, "failed to verify proof")
 	}
+	log.WithContext(ctx).Debugw("Successfully verified proof")
 
 	return proof, nil
 }
