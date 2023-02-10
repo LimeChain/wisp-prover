@@ -17,9 +17,7 @@ List of implemented features:
 
 2. Edit config file `configs/prover.yaml`
 
-3. Put compiled circuits into `<circuitsBasePath>/<circuitName>` directory. Where `<circuitsBasePath>` is config option
-   with default value `circuits`, and `<circuitName>` is name of the circuit that will be passed as a param to an API
-   call. See [SnarkJS Readme](https://github.com/iden3/snarkjs) for instructions on how to compile circuits.
+3. Download & unzip compiled circuits: `bash get-circuits.sh`
 
 3. Run prover server:
      ```
