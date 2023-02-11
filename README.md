@@ -12,25 +12,23 @@ List of implemented features:
 
 ### Installation
 
-1. Build prover server:
-    ```
-    go build ./cmd/prover/prover.go
-    ```
-2. (Optional) Create / edit your config file. Defaults to `configs/dev.yaml`.
-3. Prepare compiled circuits, zkey and verification key.
-    1. Option 1 (Development) -> Use `multiplier`:
+1. (Optional) Create / edit your config file. Defaults to `configs/dev.yaml`.
+2. Prepare compiled circuits, zkey and verification key.
+    1. Option 1 (Development): Use `multiplier`:
           ```
           mkdir ./circuits && cp -R .github/workflows/test-circuit/multiplier ./circuits/multiplier
           ```
-    2. Option 2 -> CRC circuits (`ssz2Poseidon` and `blsHeaderVerify`):
+    2. Option 2: CRC circuits (`ssz2Poseidon` and `blsHeaderVerify`):
           ```
           bash get-circuits.sh
           ```
        Hardware requirements are `256GB RAM`, `32-core CPU` and `1 TB SSD`
-
-4. Build and Run API:
+3. Build the image
+    ```
+    docker build -t prover-server .
+    ```
+4. Run Prover
    ```
-   docker build -t prover-server .
    docker run -it -p 8000:8000 prover-server
    ```
    If you want to use config, different from the default `dev` one you must pass it as an environmental
