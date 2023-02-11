@@ -34,20 +34,8 @@ type Proof struct {
 	dataPath          string // Path to the folder where input.json will be saved, witness and proof will be generated
 }
 
-func NewMultiplierProof(config configs.ProverConfig) *Proof {
-	return newProof(config, "multiplier", "multiplier")
-}
-
-func NewSszToPoseidonCommitmentProof(config configs.ProverConfig) *Proof {
-	return newProof(config, "ssz2Poseidon", "ssz2Poseidon")
-}
-
-func NewBlsHeaderVerificationProof(config configs.ProverConfig) *Proof {
-	return newProof(config, "blsHeaderVerification", "blsHeaderVerification")
-}
-
-// newProof assumes that the `binary`, `zkey` and `vkey` are placed in the `./{baseCircuitPaths}/{circuit}/` directory
-func newProof(config configs.ProverConfig, circuitName, binaryName string) *Proof {
+// NewProof assumes that the `binary`, `zkey` and `vkey` are placed in the `./{baseCircuitPaths}/{circuit}/` directory
+func NewProof(config configs.ProverConfig, circuitName, binaryName string) *Proof {
 	return &Proof{
 		config:            config,
 		circuitBinaryPath: config.CircuitsBasePath + "/" + circuitName + "/" + binaryName,

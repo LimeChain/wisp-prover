@@ -20,8 +20,10 @@ type Config struct {
 
 // ProverConfig contains only base path to circuits folder
 type ProverConfig struct {
-	CircuitsBasePath string `mapstructure:"circuitsBasePath"`
-	ProofsBasePath   string `mapstructure:"proofsPath"`
+	CircuitsBasePath     string   `mapstructure:"circuitsBasePath"`
+	ProofsBasePath       string   `mapstructure:"proofsPath"`
+	SupportedCircuitsArr []string `mapstructure:"circuits"`
+	SupportedCircuits    map[string]bool
 }
 
 // ReadConfigFromFile parse config file
@@ -38,10 +40,13 @@ func ReadConfigFromFile(path string) (*Config, error) {
 	}
 
 	config := &Config{}
-
 	err = viper.Unmarshal(config)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error parsing config file")
+	}
+	config.Prover.SupportedCircuits = make(map[string]bool)
+	for _, circuit := range config.Prover.SupportedCircuitsArr {
+		config.Prover.SupportedCircuits[circuit] = true
 	}
 
 	return config, nil

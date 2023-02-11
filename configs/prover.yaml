@@ -5,5 +5,10 @@ server:
 prover:
   circuitsBasePath: "circuits"
   proofsPath: "proofs"
+  #The name of the circuits MUST match the folder names of the circuits (placed in `circuitsBasePath`) and its binary
+  circuits:
+    - "multiplier"
+    - "ssz2Poseidon"
+    - "blsHeaderVerify"
 log:
   level: "debug"

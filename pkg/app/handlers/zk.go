@@ -6,6 +6,7 @@ import (
 	"github.com/LimeChain/crc-prover/pkg/log"
 	"github.com/LimeChain/crc-prover/pkg/proof"
 	"github.com/go-chi/render"
+	"github.com/pkg/errors"
 	"net/http"
 )
 
@@ -46,16 +47,29 @@ func (h *ZKHandler) GenerateProof(w http.ResponseWriter, r *http.Request) {
 		rest.ErrorJSON(w, r, http.StatusBadRequest, err, "invalid request", 0)
 		return
 	}
-	log.WithContext(r.Context()).Debugw("Proof generation request", "inputs", req)
+	log.WithContext(r.Context()).Debugw("Proof generation request", "inputs", req, "type", req.Inputs)
 
-	multiplier := proof.NewMultiplierProof(h.ProverConfig)
-	multiplierProof, err := multiplier.GenerateProof(r.Context(), req.Inputs)
+	prover, err := h.parseRequestedCircuit(req.Circuit)
 	if err != nil {
-		rest.ErrorJSON(w, r, http.StatusInternalServerError, err, "failed to create valid proof", 0)
+		rest.ErrorJSON(w, r, http.StatusBadRequest, err, req.Circuit, 0)
+		return
+	}
+	generatedProof, err := prover.GenerateProof(r.Context(), req.Inputs)
+	if err != nil {
+		rest.ErrorJSON(w, r, http.StatusInternalServerError, errors.New("Internal Server Error"), "", 0)
 		return
 	}
 
-	render.JSON(w, r, multiplierProof)
+	render.JSON(w, r, generatedProof)
+}
+
+func (h *ZKHandler) parseRequestedCircuit(circuit string) (*proof.Proof, error) {
+	_, exists := h.ProverConfig.SupportedCircuits[circuit]
+	if !exists {
+		return nil, errors.New("unsupported circuit provided")
+	}
+
+	return proof.NewProof(h.ProverConfig, circuit, circuit), nil
 }
 
 // VerifyProof is a handler for zkp verification
