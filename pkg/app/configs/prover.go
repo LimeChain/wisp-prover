@@ -1,6 +1,7 @@
 package configs
 
 import (
+	"github.com/LimeChain/crc-prover/pkg/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"strings"
@@ -26,15 +27,20 @@ type ProverConfig struct {
 	SupportedCircuits    map[string]bool
 }
 
-// ReadConfigFromFile parse config file
-func ReadConfigFromFile(path string) (*Config, error) {
-
+// LoadConfig parse config file
+func LoadConfig() (*Config, error) {
+	err := viper.BindEnv("config", "CONFIG")
+	if err != nil {
+		return nil, err
+	}
+	viper.SetDefault("config", "dev")
 	viper.AddConfigPath("./configs")
-	viper.SetConfigName(path)
+	configName := viper.GetString("config")
+	viper.SetConfigName(configName)
 	viper.AutomaticEnv()
 	replacer := strings.NewReplacer(".", "_")
 	viper.SetEnvKeyReplacer(replacer)
-	err := viper.ReadInConfig()
+	err = viper.ReadInConfig()
 	if err != nil {
 		return nil, errors.Wrap(err, "Error reading config file")
 	}
@@ -49,5 +55,6 @@ func ReadConfigFromFile(path string) (*Config, error) {
 		config.Prover.SupportedCircuits[circuit] = true
 	}
 
+	log.Infof("Loaded %s.yaml config", configName)
 	return config, nil
 }

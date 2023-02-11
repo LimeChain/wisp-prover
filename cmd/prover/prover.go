@@ -1,8 +1,6 @@
 package main
 
 import (
-	"os"
-
 	"github.com/LimeChain/crc-prover/pkg/app"
 	"github.com/LimeChain/crc-prover/pkg/app/configs"
 	"github.com/LimeChain/crc-prover/pkg/app/handlers"
@@ -10,11 +8,9 @@ import (
 )
 
 func main() {
-
-	config, err := configs.ReadConfigFromFile("prover")
+	config, err := configs.LoadConfig()
 	if err != nil {
-		log.Errorw("cannot read prover config storage", err)
-		os.Exit(1)
+		log.Fatalf("cannot read prover config storage", err)
 	}
 
 	log.SetLevelStr(config.Log.Level)

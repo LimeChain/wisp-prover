@@ -1,0 +1,13 @@
+# Server configuration
+server:
+  host: "localhost"
+  port: 8000
+prover:
+  circuitsBasePath: "circuits"
+  proofsPath: "proofs"
+  #The name of the circuits MUST match the folder names of the circuits (placed in `circuitsBasePath`) and its binary
+  circuits:
+    - "ssz2Poseidon"
+    - "blsHeaderVerify"
+log:
+  level: "debug"
