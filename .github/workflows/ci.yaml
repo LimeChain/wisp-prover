@@ -1,0 +1,59 @@
+name: Integration Test
+on: [ push ]
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Copy Test circuit
+        run: |
+          mkdir ./circuits && cp -R .github/workflows/test-circuit/multiplier ./circuits/multiplier
+
+      - name: Build and Run API
+        run: docker build -t prover-server . && docker run -d -p 8000:8000 -e CONFIG=cicd prover-server
+
+      - name: Wait for rest API to start
+        shell: bash
+        run: >
+          MAX_TIMEOUT=60;
+          while [[ "$(curl -s 127.0.0.1:8000/api/v1/status)" != "{\"status\":\"up and running\"}" ]]; do
+            sleep 1;
+            ((MAX_TIMEOUT-=1));
+            if [ "$MAX_TIMEOUT" -eq "0" ]; then break; fi ;
+          done;
+          if [ "$MAX_TIMEOUT" -eq "0" ]; then echo "Rest API did not start"; exit 1;
+          else echo "Rest API started"; fi ;
+      - name: Make API Request and Assert Response
+        run: |
+          RESPONSE=$(curl -X POST \
+          http://localhost:8000/api/v1/proof/generate \
+          -H 'Content-Type: application/json' \
+          -d '{
+          "circuit": "multiplier",
+          "inputs": {
+              "a": "1",
+              "b": "3"
+          }
+          }')
+
+          STATUS_CODE=$(echo "$RESPONSE" | awk 'NR==1{print $2}')
+          if [ $STATUS_CODE -ne 200 ]; then
+            echo "Error: Request returned with status code $STATUS_CODE"
+            exit 1
+          fi
+
+          echo "$RESPONSE" | jq type | grep '"object"'
+          if [ $? -ne 0 ]; then
+            echo "Error: Response is not a JSON file"
+            exit 1
+          fi
+
+          echo "$RESPONSE" | jq 'has("proof") and has("pub_signals")'
+          if [ $? -ne 0 ]; then
+            echo "Error: Response JSON does not contain 'proof' and 'pub_signals' properties"
+            exit 1
+          fi
+
+          echo "Response is a valid JSON file with status code 200 and contains 'proof' and 'pub_signals' properties"
