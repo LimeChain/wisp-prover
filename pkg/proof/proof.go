@@ -87,6 +87,7 @@ func (p *Proof) GenerateProof(ctx context.Context, inputs ZKInputs) (*types.ZKPr
 	}
 
 	// Generate witness
+	witnessStartTime := time.Now()
 	witnessPath := p.dataPath + "/" + witnessFileName
 	cmd := exec.Command(p.circuitBinaryPath, inputJsonPath, witnessPath)
 	_, err = cmd.CombinedOutput()
@@ -97,9 +98,10 @@ func (p *Proof) GenerateProof(ctx context.Context, inputs ZKInputs) (*types.ZKPr
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read newly generated witness file")
 	}
-	log.WithContext(ctx).Debugw("Generated witness")
+	log.WithContext(ctx).Infow("Successfully generated witness", "duration", time.Now().Sub(witnessStartTime).String())
 
 	// Generate Proof
+	proofStartTime := time.Now()
 	zkeyBytes, err := os.ReadFile(p.zkeyPath)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read zkey file")
@@ -109,7 +111,7 @@ func (p *Proof) GenerateProof(ctx context.Context, inputs ZKInputs) (*types.ZKPr
 		log.WithContext(ctx).Errorw("failed to generate proof", "proof", proof, "error", err)
 		return nil, errors.Wrap(err, "failed to generate proof")
 	}
-	log.WithContext(ctx).Debugw("Generated proof")
+	log.WithContext(ctx).Infow("Generated proof", "duration", time.Now().Sub(proofStartTime).String())
 
 	// Verify generated Proof
 	vkeyBytes, err := os.ReadFile(p.vkeyPath)
@@ -122,7 +124,7 @@ func (p *Proof) GenerateProof(ctx context.Context, inputs ZKInputs) (*types.ZKPr
 		log.WithContext(ctx).Errorw("failed to verify proof", "proof", proof, "error", err)
 		return nil, errors.Wrap(err, "failed to verify proof")
 	}
-	log.WithContext(ctx).Debugw("Successfully verified proof")
+	log.WithContext(ctx).Info("Successfully verified proof")
 
 	return proof, nil
 }

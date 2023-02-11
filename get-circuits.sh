@@ -6,9 +6,6 @@ curl https://s3.amazonaws.com/crc-circuits/circuits.tar -o circuits.tar
 
 # Unzip the tar file into the ./circuits directory
 echo "Unzipping compiled-circuits.tar into ./circuits directory..."
-mkdir -p ./circuits
-tar -xvf circuits.tar -C ./circuits
-
-# Remove the downloaded tar file
-echo "Deleting compiled-circuits.tar..."
-rm circuits.tar
+tar -xvf circuits.tar
+# Give permissions
+chmod -R ugo+rwx ./circuits/

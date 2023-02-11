@@ -47,16 +47,15 @@ func (h *ZKHandler) GenerateProof(w http.ResponseWriter, r *http.Request) {
 		rest.ErrorJSON(w, r, http.StatusBadRequest, err, "invalid request", 0)
 		return
 	}
-	log.WithContext(r.Context()).Debugw("Proof generation request", "inputs", req, "type", req.Inputs)
-
 	prover, err := h.parseRequestedCircuit(req.Circuit)
 	if err != nil {
 		rest.ErrorJSON(w, r, http.StatusBadRequest, err, req.Circuit, 0)
 		return
 	}
+	log.WithContext(r.Context()).Infow("Proof generation requested", "circuit", req.Circuit)
 	generatedProof, err := prover.GenerateProof(r.Context(), req.Inputs)
 	if err != nil {
-		rest.ErrorJSON(w, r, http.StatusInternalServerError, errors.New("Internal Server Error"), "", 0)
+		rest.ErrorJSON(w, r, http.StatusInternalServerError, errors.New("Internal Server Error"), err.Error(), 0)
 		return
 	}
 
