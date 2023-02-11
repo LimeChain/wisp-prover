@@ -7,28 +7,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Build Docker Image
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          tags: ${{ env.BRANCH_NAME }}:${{ env.GITHUB_SHA }}
+      - name: Build and Run API
+        run: docker build -t prover-server . && docker run -it -p 8000:8000 -e CONFIG=cicd prover-server
 
-      - name: Start Docker Container
-        uses: docker/start-action@v1
-        with:
-          image: ${{ env.BRANCH_NAME }}:${{ env.GITHUB_SHA }}
-          ports: "8000:8000"
-          environment: |
-            CONFIG=cicd
-
-      - name: Wait for API to be ready
-        id: wait_for_api
-        uses: actions/wait-action@v2
-        with:
-          timeout-seconds: 20
-          interval-seconds: 1
-          until: |
-            curl -sS --fail http://localhost:8080/api/v1/proof/generate > /dev/null
+      - name: Wait for rest API to start
+        shell: bash
+        run: >
+          MAX_TIMEOUT=60;
+          while [[ "$(curl -s 127.0.0.1:8000/api/v1/status)" != "{\"status\":\"OK\"}" ]]; do
+            sleep 1;
+            ((MAX_TIMEOUT-=1));
+            if [ "$MAX_TIMEOUT" -eq "0" ]; then break; fi ;
+          done;
+          if [ "$MAX_TIMEOUT" -eq "0" ]; then echo "Rest API did not start"; exit 1;
+          else echo "Rest API started"; fi ;
       - name: Make API Request and Assert Response
         run: |
           RESPONSE=$(curl -X POST \

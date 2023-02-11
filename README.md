@@ -43,7 +43,7 @@ Build and run container:
 
 ```bash
 docker build -t prover-server .
-docker run -it -p 8002:8002 prover-server
+docker run -it -p 8000:8000 prover-server
 ```
 
 ## License
