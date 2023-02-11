@@ -7,6 +7,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Copy Test circuit
+        run: |
+          mkdir ./circuits && cp -R .github/workflows/test-circuit/multiplier ./circuits/multiplier
+
       - name: Build and Run API
         run: docker build -t prover-server . && docker run -it -p 8000:8000 -e CONFIG=cicd prover-server
 
