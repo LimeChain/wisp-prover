@@ -12,7 +12,7 @@ jobs:
           mkdir ./circuits && cp -R .github/workflows/test-circuit/multiplier ./circuits/multiplier
 
       - name: Build and Run API
-        run: docker build -t prover-server . && docker run -it -p 8000:8000 -e CONFIG=cicd prover-server
+        run: docker build -t prover-server . && docker run -d -p 8000:8000 -e CONFIG=cicd prover-server
 
       - name: Wait for rest API to start
         shell: bash
