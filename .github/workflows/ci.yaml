@@ -1,0 +1,63 @@
+name: Integration Test
+on: [ push, pull_request ]
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build Docker Image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          tags: ${{ env.BRANCH_NAME }}:${{ env.GITHUB_SHA }}
+
+      - name: Start Docker Container
+        uses: docker/start-action@v1
+        with:
+          image: ${{ env.BRANCH_NAME }}:${{ env.GITHUB_SHA }}
+          ports: "8000:8000"
+          environment: |
+            CONFIG=cicd
+
+      - name: Wait for API to be ready
+        id: wait_for_api
+        uses: actions/wait-action@v2
+        with:
+          timeout-seconds: 20
+          interval-seconds: 1
+          until: |
+            curl -sS --fail http://localhost:8080/api/v1/proof/generate > /dev/null
+      - name: Make API Request and Assert Response
+        run: |
+          RESPONSE=$(curl -X POST \
+          http://localhost:8080/api/v1/proof/generate \
+          -H 'Content-Type: application/json' \
+          -d '{
+          "circuit": "multiplier",
+          "inputs": {
+              "a": "1",
+              "b": "3"
+          }
+          }')
+
+          STATUS_CODE=$(echo "$RESPONSE" | awk 'NR==1{print $2}')
+          if [ $STATUS_CODE -ne 200 ]; then
+            echo "Error: Request returned with status code $STATUS_CODE"
+            exit 1
+          fi
+
+          echo "$RESPONSE" | jq type | grep '"object"'
+          if [ $? -ne 0 ]; then
+            echo "Error: Response is not a JSON file"
+            exit 1
+          fi
+
+          echo "$RESPONSE" | jq 'has("proof") and has("pub_signals")'
+          if [ $? -ne 0 ]; then
+            echo "Error: Response JSON does not contain 'proof' and 'pub_signals' properties"
+            exit 1
+          fi
+
+          echo "Response is a valid JSON file with status code 200 and contains 'proof' and 'pub_signals' properties"

@@ -143,8 +143,6 @@ github.com/iden3/go-rapidsnark/types v0.0.2 h1:CjJSrlbWchHzuMRdxSYrEh7n/akP+Z2PL
 github.com/iden3/go-rapidsnark/types v0.0.2/go.mod h1:ApgcaUxKIgSRA6fAeFxK7p+lgXXfG4oA2HN5DhFlfF4=
 github.com/iden3/go-rapidsnark/verifier v0.0.3 h1:DkEe9xiwMTocOr5dH0jUt/NBk49EPujArUFvAHqpc0M=
 github.com/iden3/go-rapidsnark/verifier v0.0.3/go.mod h1:A3R3qr+8QiQtFBghrx94VJrOIr+9mdgrrbmFzJyS9Sg=
-github.com/iden3/go-rapidsnark/witness v0.0.3 h1:N2jZKJvVcLBK+OUi23KX2lKeeUGJwkQsOxkeyhs/EA8=
-github.com/iden3/go-rapidsnark/witness v0.0.3/go.mod h1:ZRd4PX8vJX/2aJ/1XRvtwMon5F7phDRX6C7v/BYBrwE=
 github.com/jstemmer/go-junit-report v0.0.0-20190106144839-af01ea7f8024/go.mod h1:6v2b51hI/fHJwM22ozAgKL4VKDeJcHhJFhtBdhmNjmU=
 github.com/jstemmer/go-junit-report v0.9.1/go.mod h1:Brl9GWCQeLvo8nXZwPNNblvFj/XSXhF0NWZEnDohbsk=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
@@ -194,8 +192,6 @@ github.com/stretchr/testify v1.8.1 h1:w7B6lhMri9wdJUVmEZPGGhZzrYTPvgJArz7wNPgYKs
 github.com/stretchr/testify v1.8.1/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
 github.com/subosito/gotenv v1.4.2 h1:X1TuBLAMDFbaTAChgCBLu3DU3UPyELpnF2jjJ2cz/S8=
 github.com/subosito/gotenv v1.4.2/go.mod h1:ayKnFf/c6rvx/2iiLrJUk1e6plDbT3edrFNGqEflhK0=
-github.com/wasmerio/wasmer-go v1.0.4 h1:MnqHoOGfiQ8MMq2RF6wyCeebKOe84G88h5yv+vmxJgs=
-github.com/wasmerio/wasmer-go v1.0.4/go.mod h1:0gzVdSfg6pysA6QVp6iVRPTagC6Wq9pOE8J86WKb2Fk=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=

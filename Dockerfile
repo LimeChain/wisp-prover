@@ -22,8 +22,6 @@ RUN apk add --no-cache libstdc++ gcompat libgomp
 COPY --from=base /build/prover /home/app/prover
 COPY --from=base /build/prover_noasm /home/app/prover_noasm
 COPY --from=base /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=base "/go/pkg/mod/github.com/wasmerio/wasmer-go@v1.0.4/wasmer/packaged/lib/linux-amd64/libwasmer.so" \
-"/go/pkg/mod/github.com/wasmerio/wasmer-go@v1.0.4/wasmer/packaged/lib/linux-amd64/libwasmer.so"
 COPY docker-entrypoint.sh /usr/local/bin/
 
 COPY ./configs   /home/app/configs
@@ -34,4 +32,4 @@ WORKDIR /home/app
 # Command to run
 ENTRYPOINT ["docker-entrypoint.sh"]
 
-EXPOSE 8002
+EXPOSE 8000
