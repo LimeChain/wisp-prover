@@ -1,4 +1,6 @@
-## CRC Prover Server
+# CRC Prover Server
+
+[![Integration Test](https://github.com/LimeChain/crc-prover/actions/workflows/ci.yaml/badge.svg?branch=master)](https://github.com/LimeChain/crc-prover/actions/workflows/ci.yaml)
 
 The Prover is a fork of [Iden3's prover-server](https://github.com/iden3/prover-server). It is a REST API Wrapper
 for [go-rapidsnark](https://github.com/iden3/go-rapidsnark)
