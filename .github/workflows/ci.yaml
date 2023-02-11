@@ -18,7 +18,7 @@ jobs:
         shell: bash
         run: >
           MAX_TIMEOUT=60;
-          while [[ "$(curl -s 127.0.0.1:8000/api/v1/status)" != "{\"status\":\"OK\"}" ]]; do
+          while [[ "$(curl -s 127.0.0.1:8000/api/v1/status)" != "{\"status\":\"up and running\"}" ]]; do
             sleep 1;
             ((MAX_TIMEOUT-=1));
             if [ "$MAX_TIMEOUT" -eq "0" ]; then break; fi ;
