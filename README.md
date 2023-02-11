@@ -16,15 +16,25 @@ List of implemented features:
     ```
     go build ./cmd/prover/prover.go
     ```
+2. (Optional) Create / edit your config file. Defaults to `configs/dev.yaml`.
+3. Prepare compiled circuits, zkey and verification key.
+    1. Option 1 (Development) -> Use `multiplier`:
+          ```
+          mkdir ./circuits && cp -R .github/workflows/test-circuit/multiplier ./circuits/multiplier
+          ```
+    2. Option 2 -> CRC circuits (`ssz2Poseidon` and `blsHeaderVerify`):
+          ```
+          bash get-circuits.sh
+          ```
+       Hardware requirements are `256GB RAM`, `32-core CPU` and `1 TB SSD`
 
-2. Edit config file `configs/prover.yaml`
-
-3. Download & unzip compiled circuits: `bash get-circuits.sh`
-
-3. Run prover server:
-     ```
-    ./prover
-    ```
+4. Build and Run API:
+   ```
+   docker build -t prover-server .
+   docker run -it -p 8000:8000 prover-server
+   ```
+   If you want to use config, different from the default `dev` one you must pass it as an environmental
+   variable `CONFIG={config}`
 
 ## API
 
@@ -34,18 +44,9 @@ List of implemented features:
 POST /api/v1/proof/generate
 Content-Type: application/json
 {
-  "inputs": {...}, // circuit specific inputs
-  "circuit_name": "..." // name of a directory containing circuit_final.zkey, verification_key.json and circuit.wasm files
+    "circuit": "multiplier", // name of the requested circuit as specified in the config
+    "inputs": {...} // circuit specific inputs
 }
-```
-
-## Docker images
-
-Build and run container:
-
-```bash
-docker build -t prover-server .
-docker run -it -p 8000:8000 prover-server
 ```
 
 ## License
