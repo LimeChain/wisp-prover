@@ -15,9 +15,12 @@ RUN go build -tags="rapidsnark_noasm" -o ./prover_noasm ./cmd/prover/prover.go
 
 
 # Main image
-FROM alpine:3.16.0
-
-RUN apk add --no-cache libstdc++ gcompat libgomp
+FROM ubuntu:22.04
+RUN apt update
+RUN apt install -y g++
+RUN apt-get install -y nlohmann-json3-dev
+RUN apt install -y libmpc-dev
+RUN apt-get -y install nasm
 
 COPY --from=base /build/prover /home/app/prover
 COPY --from=base /build/prover_noasm /home/app/prover_noasm
