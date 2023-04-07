@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"time"
 
 	"github.com/LimeChain/crc-prover/pkg/log"
@@ -125,6 +126,12 @@ func (p *Proof) GenerateProof(ctx context.Context, inputs ZKInputs) (*types.ZKPr
 		return nil, errors.Wrap(err, "failed to verify proof")
 	}
 	log.WithContext(ctx).Info("Successfully verified proof")
+
+	// Delete witness & input.json
+	err = os.RemoveAll(filepath.Dir(inputJsonPath))
+	if err != nil {
+		log.WithContext(ctx).Errorw("failed to delete input.json folder", "path", filepath.Dir(inputJsonPath), "error", err)
+	}
 
 	return proof, nil
 }
